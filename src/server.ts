@@ -21,7 +21,7 @@ export function create(): Server {
     const port = portFromArg(process.argv[0]) || 8080;
     const instance = express();
 
-    instance.use(authentication());
+    instance.use("derp", authentication());
     instance.use(express.json());
 
     return Object.freeze({
