@@ -24,7 +24,7 @@ export function statusBadRequest(): StatusCode {
     return 400 as StatusCode;
 }
 
-export function statusUnAuthorized(): StatusCode {
+export function statusUnauthorized(): StatusCode {
     return 401 as StatusCode;
 }
 
