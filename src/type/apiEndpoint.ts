@@ -1,10 +1,9 @@
-import { Request } from "express";
-
-import { ResponseMonad } from "./response";
+import { HandlerImpl } from "./response";
 
 export interface ApiEndpoint {
+    name: string,
     useAuth: boolean
+    onUnauthorized?: HandlerImpl,
     routeMatcher: string,
-    impl: (req: Request, res: ResponseMonad) => ResponseMonad,
+    impl: HandlerImpl,
 }
-

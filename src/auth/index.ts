@@ -2,6 +2,7 @@ import { RequestHandler, Router } from "express";
 import { ApiEndpoint } from "../type/apiEndpoint";
 import { validateToken } from "./jwt";
 import { statusUnauthorized } from "../type/status";
+import { handlerImplToRequestHandler } from "../type/response";
 
 const invalidToken: RequestHandler = async (req, res) => {
     res.status(statusUnauthorized()).json({
@@ -12,7 +13,7 @@ const invalidToken: RequestHandler = async (req, res) => {
 
 const validateTokenRequest: RequestHandler = async (req, res, next) => {
     const authString = req.cookies?.auth || "";
-    if (authString !== "") {
+    if (authString === "") {
         await invalidToken(req, res, next);
         return;
     }
@@ -39,7 +40,13 @@ export default function authentication(endpoints: Array<ApiEndpoint>): Router {
             continue;
         }
 
-        authRouter.all(endpoint.routeMatcher, validateTokenRequest);
+        const onUnauthorized = (
+            endpoint.onUnauthorized !== undefined ?
+                handlerImplToRequestHandler(endpoint.name, endpoint.onUnauthorized) :
+                invalidToken
+        );
+
+        authRouter.all(endpoint.routeMatcher, validateTokenRequest, onUnauthorized);
     }
 
     return authRouter;
