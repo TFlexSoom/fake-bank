@@ -1,17 +1,19 @@
 import { Request, RequestHandler } from "express";
 
-import { StatusCode } from "./status";
+import { StatusCode, statusTempRedirect } from "./status";
 
-export type HandlerImpl = (req: Request, res: ResponseBuilder) => ResponseBuilder;
+export type HandlerImpl = (req: Request, res: ResponseBuilder) => Promise<ResponseBuilder>;
 
 interface ResponseData {
     hasResponse: boolean,
     headers: Record<string, string>,
     body: Record<string, any> | null,
+    cookies: Record<string, string>,
     warnings: Array<string>,
     privateErrors: Array<string>,
     publicError: string,
     statusCode: StatusCode | null,
+    nextRender: string | null,
 }
 
 function newData(): ResponseData {
@@ -19,11 +21,23 @@ function newData(): ResponseData {
         hasResponse: false,
         headers: {},
         body: null,
+        cookies: {},
         warnings: [],
         privateErrors: [],
         publicError: null,
         statusCode: null,
+        nextRender: null,
     });
+}
+
+function lockResponse(res: ResponseData, error: string): boolean {
+    if (res.hasResponse) {
+        res.privateErrors.push(error);
+        return false;
+    }
+
+    res.hasResponse = true;
+    return true;
 }
 
 function status(res: ResponseData, statusCode: StatusCode): ResponseData {
@@ -36,26 +50,44 @@ function status(res: ResponseData, statusCode: StatusCode): ResponseData {
     return res;
 }
 
+function cookie(res: ResponseData, cookieName: string, cookieVal: any): ResponseData {
+    res.cookies[cookieName] = JSON.stringify(cookieVal);
+    return res;
+}
+
 function handle(res: ResponseData, body?: Record<string, any>): ResponseData {
-    if (res.hasResponse) {
-        res.privateErrors.push("Attempted to Send Another Body after one was sent.");
+    if (!lockResponse(res, "Attempted to Send Another Body after one was sent.")) {
         return res;
     }
-
-    res.hasResponse = true;
     res.body = structuredClone(body);
     return res;
 }
 
 function redirect(res: ResponseData, newLocation: URL): ResponseData {
-    if (res.hasResponse) {
-        res.privateErrors.push("Attempted to Send another response after one was sent.");
+    if (!lockResponse(res, "Attempted to Send another response after one was sent.")) {
         return res;
     }
 
-
-    res.hasResponse = true;
     res.headers["Location"] = newLocation.toString();
+    res.statusCode = statusTempRedirect();
+    return res;
+}
+
+function publicError(res: ResponseData, error: string): ResponseData {
+    if (!lockResponse(res, "Attempted to Error response after one was sent.")) {
+        return res;
+    }
+
+    res.publicError = structuredClone(error);
+    return res;
+}
+
+function render(res: ResponseData, nextPath: string): ResponseData {
+    if (!lockResponse(res, "Attempted to render response after one was sent.")) {
+        return res;
+    }
+
+    res.nextRender = structuredClone(nextPath);
     return res;
 }
 
@@ -63,6 +95,9 @@ export interface ResponseBuilder {
     status: (statusCode: StatusCode) => ResponseBuilder,
     handle: (body?: Record<string, any>) => ResponseBuilder,
     redirect: (newLocation: URL) => ResponseBuilder,
+    publicError: (error: string) => ResponseBuilder,
+    cookie: (cookieName: string, cookieVal: string) => ResponseBuilder,
+    render: (shortPath: string) => ResponseBuilder,
 };
 
 interface PrivateResponseBuilder extends ResponseBuilder {
@@ -75,13 +110,16 @@ function toBuilder(frozenData: ResponseData): PrivateResponseBuilder {
         status: (statusCode) => toBuilder(status(structuredClone(frozenData), statusCode)),
         handle: (body?: Record<string, any>) => toBuilder(handle(structuredClone(frozenData), body)),
         redirect: (newLocation: URL) => toBuilder(redirect(structuredClone(frozenData), newLocation)),
+        publicError: (error: string) => toBuilder(publicError(structuredClone(frozenData), error)),
+        cookie: (cookieName: string, cookieVal: string) => toBuilder(cookie(structuredClone(frozenData), cookieName, cookieVal)),
+        render: (nextPath: string) => toBuilder(render(structuredClone(frozenData), nextPath)),
     })
 }
 
 export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): RequestHandler {
     return async (req, res, next) => {
         console.log(`handling endpoint '${name}'`);
-        const builder = impl(req, toBuilder(newData()));
+        const builder = await impl(req, toBuilder(newData()));
 
         const {
             hasResponse,
@@ -90,6 +128,7 @@ export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): Re
             warnings,
             privateErrors,
             publicError,
+            nextRender,
             statusCode,
         } = (builder as PrivateResponseBuilder).frozenData;
 
@@ -110,6 +149,15 @@ export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): Re
             res.setHeader(header, headers[header]);
         }
 
-        res.status(statusCode).send(body);
+        res.status(statusCode);
+        if (publicError !== "") {
+            res.send({
+                "error": publicError,
+            });
+        } else if (nextRender !== null) {
+            next(nextRender);
+        } else {
+            res.send(body);
+        }
     };
 }

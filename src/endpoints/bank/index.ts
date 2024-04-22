@@ -1,14 +1,19 @@
-import { ApiEndpoint } from "../../type/apiEndpoint";
+import { ApiEndpoint, Method } from "../../type/apiEndpoint";
 
 const rootRedirect: ApiEndpoint = {
     name: "root",
+    method: Method.GET,
     useAuth: true,
     onUnauthorized:
-        (req, res) => {
+        async (req, res) => {
             return res.redirect(new URL(req.baseUrl + "/login"));
         },
     routeMatcher: "/",
-    impl: (req, res) => {
+    impl: async (req, res) => {
         return res.redirect(new URL(req.baseUrl + "/dashboard"));
     },
 }
+
+export const Endpoints = [
+    rootRedirect,
+]

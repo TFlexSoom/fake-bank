@@ -20,6 +20,10 @@ export function statusNoContent(): StatusCode {
     return 204 as StatusCode;
 }
 
+export function statusTempRedirect(): StatusCode {
+    return 307 as StatusCode;
+}
+
 export function statusBadRequest(): StatusCode {
     return 400 as StatusCode;
 }

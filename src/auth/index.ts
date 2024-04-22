@@ -4,6 +4,10 @@ import { validateToken } from "./jwt";
 import { statusUnauthorized } from "../type/status";
 import { handlerImplToRequestHandler } from "../type/response";
 
+export function cookieName(): string {
+    return "auth";
+}
+
 const invalidToken: RequestHandler = async (req, res) => {
     res.status(statusUnauthorized()).json({
         error: "unauthorized"
@@ -12,7 +16,7 @@ const invalidToken: RequestHandler = async (req, res) => {
 
 
 const validateTokenRequest: RequestHandler = async (req, res, next) => {
-    const authString = req.cookies?.auth || "";
+    const authString = req.cookies[cookieName()] || "";
     if (authString === "") {
         await invalidToken(req, res, next);
         return;
