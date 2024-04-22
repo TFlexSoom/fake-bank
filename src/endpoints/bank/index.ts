@@ -1,4 +1,5 @@
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
+import { loginGet, loginPost } from "./login";
 
 const rootRedirect: ApiEndpoint = {
     name: "root",
@@ -16,4 +17,6 @@ const rootRedirect: ApiEndpoint = {
 
 export const Endpoints = [
     rootRedirect,
+    loginGet,
+    loginPost,
 ]

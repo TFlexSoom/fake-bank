@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import authentication from "./auth";
 import { ApiEndpoint } from "./type/apiEndpoint";
+import Endpoints from "./endpoints";
 
 export interface Server {
     run: () => void
@@ -24,10 +25,10 @@ export function create(): Server {
     const port = portFromArg(process.argv[0]) || 8080;
     const instance = express();
 
-    const endpoints: Array<ApiEndpoint> = []
+    const _endpoints: Array<ApiEndpoint> = Endpoints;
 
     instance.use(cookieParser());
-    instance.use(authentication(endpoints));
+    instance.use(authentication(_endpoints));
     instance.use(express.json());
 
     return Object.freeze({

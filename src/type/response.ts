@@ -1,6 +1,7 @@
 import { Request, RequestHandler } from "express";
 
 import { StatusCode, statusTempRedirect } from "./status";
+import { Frontend, renderFrontend } from "../html/render";
 
 export type HandlerImpl = (req: Request, res: ResponseBuilder) => Promise<ResponseBuilder>;
 
@@ -14,6 +15,7 @@ interface ResponseData {
     publicError: string,
     statusCode: StatusCode | null,
     nextRender: string | null,
+    html: Frontend | null,
 }
 
 function newData(): ResponseData {
@@ -27,6 +29,7 @@ function newData(): ResponseData {
         publicError: null,
         statusCode: null,
         nextRender: null,
+        html: null,
     });
 }
 
@@ -91,6 +94,15 @@ function render(res: ResponseData, nextPath: string): ResponseData {
     return res;
 }
 
+function html(res: ResponseData, frontend: Frontend): ResponseData {
+    if (!lockResponse(res, "Attempted to display html after response was sent.")) {
+        return res;
+    }
+
+    res.html = structuredClone(frontend);
+    return res;
+}
+
 export interface ResponseBuilder {
     status: (statusCode: StatusCode) => ResponseBuilder,
     handle: (body?: Record<string, any>) => ResponseBuilder,
@@ -98,6 +110,7 @@ export interface ResponseBuilder {
     publicError: (error: string) => ResponseBuilder,
     cookie: (cookieName: string, cookieVal: string) => ResponseBuilder,
     render: (shortPath: string) => ResponseBuilder,
+    html: (frontend: Frontend) => ResponseBuilder,
 };
 
 interface PrivateResponseBuilder extends ResponseBuilder {
@@ -113,6 +126,7 @@ function toBuilder(frozenData: ResponseData): PrivateResponseBuilder {
         publicError: (error: string) => toBuilder(publicError(structuredClone(frozenData), error)),
         cookie: (cookieName: string, cookieVal: string) => toBuilder(cookie(structuredClone(frozenData), cookieName, cookieVal)),
         render: (nextPath: string) => toBuilder(render(structuredClone(frozenData), nextPath)),
+        html: (frontend: Frontend) => toBuilder(html(structuredClone(frozenData), frontend)),
     })
 }
 
@@ -130,6 +144,7 @@ export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): Re
             publicError,
             nextRender,
             statusCode,
+            html,
         } = (builder as PrivateResponseBuilder).frozenData;
 
         if (warnings.length !== 0) {
@@ -156,6 +171,8 @@ export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): Re
             });
         } else if (nextRender !== null) {
             next(nextRender);
+        } else if (html !== null) {
+            res.send(renderFrontend(html));
         } else {
             res.send(body);
         }
