@@ -4,6 +4,7 @@ import { validatePassword } from "../../auth/password";
 import { getEmptyUser, getUserFromUsername } from "../../data/user";
 import { frontendWithTitle } from "../../html/render";
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
+import { statusBadRequest, statusOk, statusUnauthorized } from "../../type/status";
 
 interface LoginPayload {
     username?: string,
@@ -18,15 +19,15 @@ export const loginPost: ApiEndpoint = {
     impl: async (req, res) => {
         const { username, password } = req.body as LoginPayload;
         if (username === undefined) {
-            return res.status(400).publicError("No Username Supplied!");
+            return res.status(statusBadRequest()).publicError("No Username Supplied!");
         } else if (password === undefined) {
-            return res.status(400).publicError("No Password Supplied!");
+            return res.status(statusBadRequest()).publicError("No Password Supplied!");
         }
 
         const user = (await getUserFromUsername(username)) || getEmptyUser();
         const isValid = await validatePassword(user, password || "");
         if (!isValid) {
-            return res.status(401).publicError("Unauthorized");
+            return res.status(statusUnauthorized()).publicError("Unauthorized");
         }
 
         res = res.cookie(cookieName(), await generateToken(user.uuid));
@@ -40,6 +41,6 @@ export const loginGet: ApiEndpoint = {
     useAuth: false,
     routeMatcher: "/login",
     impl: async (req, res) => {
-        return res.html(frontendWithTitle("login"));
+        return res.status(statusOk()).html(frontendWithTitle("login"));
     },
 }

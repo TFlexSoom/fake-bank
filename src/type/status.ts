@@ -40,4 +40,8 @@ export function statusNotFound(): StatusCode {
     return 404 as StatusCode;
 }
 
+export function statusServerError(): StatusCode {
+    return 500 as StatusCode;
+}
+
 // Add other status codes as necessary

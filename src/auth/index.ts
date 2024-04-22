@@ -18,7 +18,7 @@ const invalidToken: RequestHandler = async (req, res) => {
 const validateTokenRequest: RequestHandler = async (req, res, next) => {
     const authString = req.cookies[cookieName()] || "";
     if (authString === "") {
-        await invalidToken(req, res, next);
+        next();
         return;
     }
 
@@ -31,9 +31,7 @@ const validateTokenRequest: RequestHandler = async (req, res, next) => {
         console.warn("error validating token", err);
     }
 
-    await invalidToken(req, res, next);
-    return;
-
+    next();
 }
 
 export default function authentication(endpoints: Array<ApiEndpoint>): Router {

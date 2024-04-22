@@ -7,11 +7,11 @@ const rootRedirect: ApiEndpoint = {
     useAuth: true,
     onUnauthorized:
         async (req, res) => {
-            return res.redirect(new URL(req.baseUrl + "/login"));
+            return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
         },
     routeMatcher: "/",
     impl: async (req, res) => {
-        return res.redirect(new URL(req.baseUrl + "/dashboard"));
+        return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
     },
 }
 

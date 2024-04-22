@@ -3,6 +3,8 @@ import cookieParser from "cookie-parser";
 import authentication from "./auth";
 import { ApiEndpoint } from "./type/apiEndpoint";
 import Endpoints from "./endpoints";
+import { handlerImplToRequestHandler } from "./type/response";
+import { statusServerError } from "./type/status";
 
 export interface Server {
     run: () => void
@@ -30,6 +32,17 @@ export function create(): Server {
     instance.use(cookieParser());
     instance.use(authentication(_endpoints));
     instance.use(express.json());
+    for (const endpoint of _endpoints) {
+        instance[endpoint.method](
+            endpoint.routeMatcher,
+            handlerImplToRequestHandler(endpoint.name, endpoint.impl),
+        );
+    }
+    instance.use((req, res, next) => {
+        res.status(statusServerError()).send({
+            error: "server error",
+        });
+    });
 
     return Object.freeze({
         run: () => instance.listen(port),

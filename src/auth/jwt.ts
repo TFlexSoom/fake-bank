@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify, importJWK, KeyLike } from "jose";
-import { Uuid, uuidFromString } from "../type/uuid";
+import { Uuid } from "../type/uuid";
 
 const alg = "HS256";
 const iss = "fakebank";
@@ -19,7 +19,7 @@ async function getSecret(): Promise<Secret> {
 
 export async function generateToken(uuid: Uuid): Promise<string> {
     return await new SignJWT({
-        uuidStr: uuid as string
+        uuidStr: uuid.toString()
     })
         .setProtectedHeader({ alg })
         .setIssuedAt()
@@ -46,6 +46,6 @@ export async function validateToken(authString: string): Promise<Uuid | null> {
 
 
     const { uuidStr } = result.payload as { uuidStr: string };
-    const uuid = uuidFromString(uuidStr);
+    const uuid = Uuid.fromString(uuidStr);
     return uuid;
 }

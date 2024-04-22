@@ -158,14 +158,20 @@ export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): Re
         if (!hasResponse) {
             console.log(`endpoint '${name}' did not return a response`);
             next();
+            return;
         }
 
         for (const header of Object.keys(headers)) {
             res.setHeader(header, headers[header]);
         }
 
+        if (statusCode === null) {
+            console.error(`endpoint '${name} did not have a status code`);
+            next();
+        }
+
         res.status(statusCode);
-        if (publicError !== "") {
+        if (publicError !== null) {
             res.send({
                 "error": publicError,
             });

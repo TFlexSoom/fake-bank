@@ -27,20 +27,23 @@ head
     script(src="https://unpkg.com/htmx.org@1.9.12")
 body
     h1 THE FAKE BANK
-    !{self.component}
+    | !{self.component}
 </html>
-`)
+`, {
+    self: true,
+})
 
 const component = compile(`
-div 
-    hi there
-`)
+div hello there
+`, {
+    self: true,
+})
 
 export function renderFrontend(frontend: Frontend) {
-    page({
+    return page({
         title: frontend.title,
         component: component({
-            val: frontend.component ? frontend.component.val : ""
+            val: frontend.component !== null ? frontend.component.val : "default"
         }),
     })
 }
