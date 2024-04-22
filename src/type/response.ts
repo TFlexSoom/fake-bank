@@ -151,7 +151,7 @@ export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): Re
             console.warn("Warnings: ", warnings);
         }
 
-        if (privateErrors.length !== 0 || publicError !== "") {
+        if (privateErrors.length !== 0 || publicError !== null) {
             console.error("Private Errors: ", privateErrors, "\nPublic Error: ", publicError);
         }
 
