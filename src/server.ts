@@ -24,7 +24,7 @@ function portFromArg(arg: string | undefined): number | undefined {
 }
 
 export function create(args: Array<string>): Server {
-    const [ portArg ] = args;
+    const [portArg] = args;
     const port = portFromArg(portArg) || 8080;
     const instance = express();
 

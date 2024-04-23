@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:16.2
+    container_name: fake-bank-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USERNAME:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWOR:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-public}
+    volumes:
+      - fake-bank-data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+
+volumes:
+  fake-bank-data:

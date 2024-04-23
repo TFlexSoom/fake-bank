@@ -1,32 +1,47 @@
-import { PrismaClient } from 'prisma';
+import { PrismaClient } from '@prisma/client';
 import { Uuid } from '../type/uuid';
-import { Integer } from '../type/integer';
+
+const client = new PrismaClient();
 
 export interface User {
     uuid: Uuid,
-    cents: Integer,
     username: string,
     password: string,
 }
 
 export interface UserPayload {
     uuid: Uuid,
-    cents: Integer,
 }
 
 export async function getUserFromUsername(username: string): Promise<User> {
-    return {
-        uuid: Uuid.createUuid(),
-        cents: new Integer(0),
-        username: "",
-        password: "",
-    };
+    try {
+        const user = await client.user.findUnique({
+            where: {
+                username: username,
+            },
+        });
+
+        if (user === null) {
+            return getEmptyUser();
+        }
+
+        return {
+            uuid: Uuid.fromString(user.uuid),
+            username: user.username,
+            password: user.password,
+        }
+
+    } catch (err) {
+        console.log("DB Error: ", err);
+    }
+
+    return getEmptyUser();
+
 }
 
 export function getEmptyUser(): User {
     return {
         uuid: Uuid.createUuid(),
-        cents: new Integer(0),
         username: "",
         password: "",
     };
