@@ -1,8 +1,6 @@
-import { v5 as uuid, validate as uuidValidate, version as uuidVersion } from 'uuid';
+import { v4 as uuid, validate as uuidValidate, version as uuidVersion } from 'uuid';
 
-const namespace = process.env.UUID_NAMESPACE || "83249340-d2cb-47be-b0e9-19079c640573";
-const dns = process.env.DNS || "https://fake-bank.com"
-
+const version = 4;
 
 export class Uuid {
     private val: string;
@@ -13,13 +11,13 @@ export class Uuid {
     }
 
     static createUuid(): Uuid {
-        return new Uuid(uuid(dns, namespace));
+        return new Uuid(uuid());
     }
 
     static fromString(from: string): Uuid {
         if (!uuidValidate(from)) {
             throw new Error("not a valid uuid");
-        } else if (uuidVersion(from) !== 5) {
+        } else if (uuidVersion(from) !== version) {
             throw new Error("not a valid uuid version");
         }
 

@@ -2,6 +2,7 @@ import { cookieName } from "../../auth";
 import { generateToken } from "../../auth/jwt";
 import { validatePassword } from "../../auth/password";
 import { getEmptyUser, getUserFromUsername } from "../../data/user";
+import { usernamePasswordModal } from "../../html/modal";
 import { frontendWithTitle } from "../../html/render";
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
 import { statusBadRequest, statusOk, statusUnauthorized } from "../../type/status";
@@ -41,6 +42,8 @@ export const loginGet: ApiEndpoint = {
     useAuth: false,
     routeMatcher: "/login",
     impl: async (req, res) => {
-        return res.status(statusOk()).html(frontendWithTitle("login"));
+        return res.status(statusOk()).html(
+            frontendWithTitle("login").setComponent(usernamePasswordModal(false))
+        );
     },
 }

@@ -1,5 +1,6 @@
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
 import { loginGet, loginPost } from "./login";
+import { registerGet, registerPost } from "./register";
 
 const rootRedirect: ApiEndpoint = {
     name: "root",
@@ -19,4 +20,6 @@ export const Endpoints = [
     rootRedirect,
     loginGet,
     loginPost,
+    registerGet,
+    registerPost,
 ]

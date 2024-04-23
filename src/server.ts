@@ -4,7 +4,8 @@ import authentication from "./auth";
 import { ApiEndpoint } from "./type/apiEndpoint";
 import Endpoints from "./endpoints";
 import { endpointImplToExpressHandler } from "./type/response";
-import { statusServerError } from "./type/status";
+import { statusNotFound } from "./type/status";
+import "dotenv/config";
 
 export interface Server {
     run: () => void
@@ -39,9 +40,11 @@ export function create(args: Array<string>): Server {
             endpointImplToExpressHandler(endpoint.name, endpoint.impl),
         );
     }
+
+    // Change to 404
     instance.use((req, res, next) => {
-        res.status(statusServerError()).send({
-            error: "server error",
+        res.status(statusNotFound()).send({
+            error: "Missing Page 404",
         });
     });
 

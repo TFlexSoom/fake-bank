@@ -1,7 +1,8 @@
 import { Request, RequestHandler } from "express";
 
 import { StatusCode, statusTempRedirect } from "./status";
-import { Frontend, renderFrontend } from "../html/render";
+import { renderFrontend } from "../html/render";
+import { Frontend } from "./frontend";
 
 export type HandlerImpl = (req: Request, res: ResponseBuilder) => Promise<ResponseBuilder>;
 
@@ -99,7 +100,7 @@ function html(res: ResponseData, frontend: Frontend): ResponseData {
         return res;
     }
 
-    res.html = structuredClone(frontend);
+    res.html = frontend.clone();
     return res;
 }
 
@@ -167,11 +168,11 @@ function createIO({
 
     const ioUseNext = useNext || false;
     const ioErrors = structuredClone(privateErrors)
-    if(error !== undefined) {
+    if (error !== undefined) {
         ioErrors.push(error);
     }
 
-    if(publicError != null) {
+    if (publicError != null) {
         ioErrors.push(publicError);
     }
 
@@ -199,7 +200,7 @@ export async function endpointImplToIO(name: string, req: Request, impl: Handler
         statusCode,
         html,
     } = (builder as PrivateResponseBuilder).frozenData;
-    
+
 
     if (!hasResponse) {
         return createIO({
@@ -209,7 +210,7 @@ export async function endpointImplToIO(name: string, req: Request, impl: Handler
         })
     }
 
-    if(statusCode === undefined) {
+    if (statusCode === undefined) {
         return createIO({
             builder,
             useNext: true,
@@ -225,21 +226,21 @@ export async function endpointImplToIO(name: string, req: Request, impl: Handler
             }
         });
     }
-    
+
     if (nextRender !== null) {
         return createIO({
             builder,
             useNext: true,
         });
     }
-    
+
     if (html !== null) {
         return createIO({
             builder,
             payload: renderFrontend(html),
         });
     }
-    
+
     return createIO({
         builder,
         payload: body
@@ -283,7 +284,7 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
             res.cookie(cookie, cookies[cookie]);
         }
 
-        if(useNext) {
+        if (useNext) {
             next(...nextParams);
             return;
         }

@@ -45,11 +45,7 @@ const limits: Record<Action, Limit> = {
 }
 
 async function lockRequest(ip: string, action: string): Promise<boolean> {
-    if (Action[action] === undefined) {
-        throw new Error(`cannot lock undefined action ${action}`);
-    }
-
-    const limit = limits[action];
+    const limit: Limit = limits[action];
     if (limit === undefined) {
         throw new Error(`cannot lock action ${action} with no limit`);
     }
@@ -78,7 +74,7 @@ async function lockRequest(ip: string, action: string): Promise<boolean> {
             data: {
                 ip: ip,
                 action: action,
-                score: limit.increment,
+                score: limit.increment.toNumber(),
             }
         });
 
@@ -87,7 +83,6 @@ async function lockRequest(ip: string, action: string): Promise<boolean> {
         {
             maxWait: 2000,
             timeout: 5000,
-            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         });
 }
 
