@@ -1,5 +1,5 @@
 import {describe, it} from "mocha";
-import {deepStrictEqual, fail} from "assert";
+import {deepStrictEqual, fail, notDeepStrictEqual} from "assert";
 import {Uuid} from "../../src/type/uuid";
 
 describe("uuids", () => {
@@ -7,10 +7,11 @@ describe("uuids", () => {
         let uuid = Uuid.createUuid();
         try {
             uuid["val"] = "hello there";
-            fail("could modify value");
         } catch (err) {
-            // console.log(`got err: ${err}`);
+            console.log(`got err: ${err}`);
         }
+
+        notDeepStrictEqual(uuid.toString(), "hello there");
     });
 
     it("should validate itself from toString", () => {

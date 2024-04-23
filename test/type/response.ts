@@ -1,7 +1,8 @@
 import {describe, it} from "mocha";
-import assert, {deepStrictEqual, notDeepStrictEqual} from "assert";
+import assert, {deepStrictEqual, fail, notDeepStrictEqual, notEqual} from "assert";
 import {endpointImplToIO} from "../../src/type/response";
 import {mockRequest} from 'mock-req-res'
+import { statusOk } from "../../src/type/status";
 
 describe("responses", () => {
     it("should error for sending multiple responses", async () => {
@@ -36,5 +37,27 @@ describe("responses", () => {
 
         assert(io.useNext);
         deepStrictEqual(io.nextParams[0], shortPath);
-    })
+    });
+    it("response builders should not be equal when there are modifications", async () => {
+        await endpointImplToIO("test", mockRequest(), async (req, res) => {
+            const notRes = res.status(statusOk());
+            notEqual(res, notRes);
+            notDeepStrictEqual(res, notRes);
+            return notRes;
+        });
+    });
+    it("response builders should not be directly modifiable", async () => {
+        let io;
+        try {
+            io = await endpointImplToIO("test", mockRequest(), async (req, res) => {
+                res["hasResponse"] = true;
+                assert(!res["hasResponse"]);
+                return res;
+            });
+        } catch (err) {
+            console.log(`error received ${err}`);
+        }
+
+        assert(io?.useNext);
+    });
 });

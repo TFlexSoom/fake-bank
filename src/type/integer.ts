@@ -1,5 +1,5 @@
 export class Integer {
-    private val: number
+    private val: Readonly<number>
 
     constructor(num: number) {
         if (Math.round(num) !== num) {

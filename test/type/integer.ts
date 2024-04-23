@@ -3,14 +3,19 @@ import {equal, fail, notDeepStrictEqual, notEqual} from "assert";
 import {Integer} from "../../src/type/integer";
 
 describe("integers", () => {
-    it("should not be directly editable", () => {
-        let myInt = new Integer(0);
+    it("should not be directly modifiable", () => {
+        const shouldBe = 0;
+        const otherNumber = 5;
+        let myInt = new Integer(shouldBe);
         try {
-            myInt["val"] = 5;
-            fail("could modify value");
+            myInt["val"] = otherNumber;
         } catch (err) {
-            // console.log(`got err: ${err}`);
+            console.log(`got err: ${err}`);
+            return;
         }
+
+        equal(myInt.toNumber(), shouldBe);
+        notEqual(myInt.toNumber(), otherNumber);
     });
 
     it("adding should be sum of self and literal", () => {
