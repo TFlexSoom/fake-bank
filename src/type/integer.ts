@@ -7,13 +7,26 @@ export class Integer {
         };
 
         this.val = num;
+        Object.freeze(this);
     }
 
-    addInteger(num: Integer) {
-        this.val + num.val;
+    addInteger(num: Integer): Integer {
+        return new Integer(this.val + num.val);
     }
 
-    add(num: number) {
-        this.addInteger(new Integer(num))
+    add(num: number): Integer {
+        return new Integer(this.val + num);
+    }
+
+    transform(callable: (number) => number) {
+        return callable(this.val);
+    }
+
+    toNumber() {
+        return this.val;
+    }
+
+    toString() {
+        return this.val.toString();
     }
 }

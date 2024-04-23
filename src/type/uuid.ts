@@ -1,16 +1,19 @@
 import { v5 as uuid, validate as uuidValidate, version as uuidVersion } from 'uuid';
 
-const namespace = "83249340-d2cb-47be-b0e9-19079c640573";
+const namespace = process.env.UUID_NAMESPACE || "83249340-d2cb-47be-b0e9-19079c640573";
+const dns = process.env.DNS || "https://fake-bank.com"
+
 
 export class Uuid {
     private val: string;
 
     private constructor(paramVal: string) {
         this.val = paramVal;
+        Object.freeze(this);
     }
 
     static createUuid(): Uuid {
-        return new Uuid(uuid("https://fake-bank.com", namespace));
+        return new Uuid(uuid(dns, namespace));
     }
 
     static fromString(from: string): Uuid {
