@@ -12,7 +12,7 @@ interface ResponseData {
     cookies: Record<string, string>,
     warnings: Array<string>,
     privateErrors: Array<string>,
-    publicError: string,
+    publicError: string | null,
     statusCode: StatusCode | null,
     nextRender: string | null,
     html: Frontend | null,
@@ -130,57 +130,165 @@ function toBuilder(frozenData: ResponseData): PrivateResponseBuilder {
     })
 }
 
-export function handlerImplToRequestHandler(name: string, impl: HandlerImpl): RequestHandler {
+export interface IO {
+    logs: Array<string>,
+    warnings: Array<string>,
+    errors: Array<string>,
+    headers: Record<string, string>,
+    cookies: Record<string, string>,
+    useNext: boolean,
+    nextParams: Array<string>,
+    statusCode: StatusCode,
+    send: Record<string, any> | string | undefined,
+}
+
+function createIO({
+    builder,
+    useNext,
+    logs,
+    error,
+    payload,
+}: {
+    builder: ResponseBuilder,
+    useNext?: boolean
+    logs?: Array<string>,
+    error?: string,
+    payload?: Record<string, any> | string,
+}): Readonly<IO> {
+    const {
+        headers,
+        cookies,
+        warnings,
+        privateErrors,
+        publicError,
+        nextRender,
+        statusCode,
+    } = (builder as PrivateResponseBuilder).frozenData;
+
+    const ioUseNext = useNext || false;
+    const ioErrors = structuredClone(privateErrors)
+    if(error !== undefined) {
+        ioErrors.push(error);
+    }
+
+    if(publicError != null) {
+        ioErrors.push(publicError);
+    }
+
+    return Object.freeze({
+        logs: structuredClone(logs) || [],
+        warnings: structuredClone(warnings),
+        errors: ioErrors,
+        headers: headers,
+        cookies: cookies,
+        useNext: ioUseNext,
+        nextParams: [nextRender],
+        statusCode: statusCode,
+        send: payload,
+    });
+}
+
+export async function endpointImplToIO(name: string, req: Request, impl: HandlerImpl): Promise<Readonly<IO>> {
+    const builder = await impl(req, toBuilder(newData()));
+
+    const {
+        hasResponse,
+        body,
+        publicError,
+        nextRender,
+        statusCode,
+        html,
+    } = (builder as PrivateResponseBuilder).frozenData;
+    
+
+    if (!hasResponse) {
+        return createIO({
+            builder,
+            logs: [`endpoint '${name}' did not return a response`],
+            useNext: true,
+        })
+    }
+
+    if(statusCode === undefined) {
+        return createIO({
+            builder,
+            useNext: true,
+            error: `endpoint '${name}' did not have a statusCode`,
+        })
+    }
+
+    if (publicError !== null) {
+        return createIO({
+            builder,
+            payload: {
+                "error": publicError,
+            }
+        });
+    }
+    
+    if (nextRender !== null) {
+        return createIO({
+            builder,
+            useNext: true,
+        });
+    }
+    
+    if (html !== null) {
+        return createIO({
+            builder,
+            payload: renderFrontend(html),
+        });
+    }
+    
+    return createIO({
+        builder,
+        payload: body
+    });
+
+}
+
+export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): RequestHandler {
     return async (req, res, next) => {
         console.log(`handling endpoint '${name}'`);
-        const builder = await impl(req, toBuilder(newData()));
 
         const {
-            hasResponse,
-            headers,
-            body,
+            logs,
             warnings,
-            privateErrors,
-            publicError,
-            nextRender,
+            errors,
+            headers,
+            cookies,
+            useNext,
+            nextParams,
             statusCode,
-            html,
-        } = (builder as PrivateResponseBuilder).frozenData;
+            send,
+        } = await endpointImplToIO(name, req, impl);
+
+        if (logs.length !== 0) {
+            console.log(logs);
+        }
 
         if (warnings.length !== 0) {
-            console.warn("Warnings: ", warnings);
+            console.warn(warnings);
         }
 
-        if (privateErrors.length !== 0 || publicError !== null) {
-            console.error("Private Errors: ", privateErrors, "\nPublic Error: ", publicError);
-        }
-
-        if (!hasResponse) {
-            console.log(`endpoint '${name}' did not return a response`);
-            next();
-            return;
+        if (errors.length !== 0) {
+            console.error(errors);
         }
 
         for (const header of Object.keys(headers)) {
             res.setHeader(header, headers[header]);
         }
 
-        if (statusCode === null) {
-            console.error(`endpoint '${name} did not have a status code`);
-            next();
+        for (const cookie of Object.keys(cookies)) {
+            res.cookie(cookie, cookies[cookie]);
+        }
+
+        if(useNext) {
+            next(...nextParams);
+            return;
         }
 
         res.status(statusCode);
-        if (publicError !== null) {
-            res.send({
-                "error": publicError,
-            });
-        } else if (nextRender !== null) {
-            next(nextRender);
-        } else if (html !== null) {
-            res.send(renderFrontend(html));
-        } else {
-            res.send(body);
-        }
+        res.send(send);
     };
 }

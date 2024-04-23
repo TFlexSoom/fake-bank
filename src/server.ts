@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import authentication from "./auth";
 import { ApiEndpoint } from "./type/apiEndpoint";
 import Endpoints from "./endpoints";
-import { handlerImplToRequestHandler } from "./type/response";
+import { endpointImplToExpressHandler } from "./type/response";
 import { statusServerError } from "./type/status";
 
 export interface Server {
@@ -36,7 +36,7 @@ export function create(args: Array<string>): Server {
     for (const endpoint of _endpoints) {
         instance[endpoint.method](
             endpoint.routeMatcher,
-            handlerImplToRequestHandler(endpoint.name, endpoint.impl),
+            endpointImplToExpressHandler(endpoint.name, endpoint.impl),
         );
     }
     instance.use((req, res, next) => {

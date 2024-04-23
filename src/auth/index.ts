@@ -2,7 +2,7 @@ import { RequestHandler, Router } from "express";
 import { ApiEndpoint } from "../type/apiEndpoint";
 import { validateToken } from "./jwt";
 import { statusUnauthorized } from "../type/status";
-import { handlerImplToRequestHandler } from "../type/response";
+import { endpointImplToExpressHandler } from "../type/response";
 
 export function cookieName(): string {
     return "auth";
@@ -44,7 +44,7 @@ export default function authentication(endpoints: Array<ApiEndpoint>): Router {
 
         const onUnauthorized = (
             endpoint.onUnauthorized !== undefined ?
-                handlerImplToRequestHandler(endpoint.name, endpoint.onUnauthorized) :
+                endpointImplToExpressHandler(endpoint.name, endpoint.onUnauthorized) :
                 invalidToken
         );
 
