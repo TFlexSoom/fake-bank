@@ -17,14 +17,15 @@ function portFromArg(arg: string | undefined): number | undefined {
 
     const port: number = Number.parseInt(arg);
     if (port > 65535) {
-        throw new Error("Cannot use Out of range port");
+        throw new Error("cannot use out of range port");
     }
 
     return port;
 }
 
-export function create(): Server {
-    const port = portFromArg(process.argv[0]) || 8080;
+export function create(args: Array<string>): Server {
+    const [ portArg ] = args;
+    const port = portFromArg(portArg) || 8080;
     const instance = express();
 
     const _endpoints: Array<ApiEndpoint> = Endpoints;
