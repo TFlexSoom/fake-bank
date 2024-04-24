@@ -13,7 +13,7 @@ export const details: ApiEndpoint = {
         async (req, res) => {
             return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
         },
-    routeMatcher: "/dashboard/:accountId",
+    routeMatcher: "/details/:accountId",
     impl: async (req, res) => {
         const uuid = req["user"] as Uuid;
         if (uuid === undefined) {

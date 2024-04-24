@@ -36,11 +36,13 @@ export class Frontend {
     }
 }
 
-export class FrontendComponent {
-    private dynamic: Record<string, string>;
-    private compiler: (locale: Record<string, string>) => string;
+type Compiler = (locale: Record<string, any>) => string;
 
-    constructor(dynamic, compiler) {
+export class FrontendComponent {
+    private dynamic: Record<string, any>;
+    private compiler: Compiler;
+
+    constructor(dynamic: Record<string, any>, compiler: Compiler) {
         this.dynamic = structuredClone(dynamic);
         this.compiler = compiler;
         Object.freeze(this);
