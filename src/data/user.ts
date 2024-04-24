@@ -47,6 +47,28 @@ export async function createUser(username: string, hashed: HashedPassword): Prom
     return undefined;
 }
 
+export async function createAccountForUser(user: User): Promise<Account | undefined> {
+    try {
+        const dbAccount = await client.account.create({
+            data: {
+                uuid: Uuid.createUuid().toString(),
+                userId: user.id.toNumber(),
+                cents: 0,
+            }
+        });
+
+        return {
+            id: new Integer(dbAccount.id),
+            uuid: Uuid.fromString(dbAccount.uuid),
+            cents: new Integer(dbAccount.cents),
+        };
+    } catch (err) {
+        console.error("DB Error: ", err);
+    }
+
+    return undefined;
+}
+
 export async function getUserAndAccountsFromUuid(uuid: Uuid): Promise<UserAndAccounts> {
     const emptyResponse: UserAndAccounts = {
         user: getEmptyUser(),
@@ -74,7 +96,11 @@ export async function getUserAndAccountsFromUuid(uuid: Uuid): Promise<UserAndAcc
                 username: structuredClone(user.username),
                 password: structuredClone(user.password),
             },
-            accounts: [],
+            accounts: user.Accounts.map((account) => Object.seal({
+                id: new Integer(account.id),
+                uuid: Uuid.fromString(account.uuid),
+                cents: new Integer(account.cents),
+            })),
         }
 
     } catch (err) {

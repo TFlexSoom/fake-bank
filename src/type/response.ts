@@ -3,6 +3,7 @@ import { Request, RequestHandler } from "express";
 import { StatusCode, statusTempRedirect } from "./status";
 import { renderFrontend } from "../html/render";
 import { Frontend } from "./frontend";
+import { Method } from "./apiEndpoint";
 
 export type HandlerImpl = (req: Request, res: ResponseBuilder) => Promise<ResponseBuilder>;
 
@@ -183,13 +184,12 @@ function createIO({
         ioErrors.push(publicError);
     }
 
-
     return Object.freeze({
         logs: structuredClone(logs) || [],
         warnings: structuredClone(warnings),
-        errors: ioErrors,
-        cookies: cookies,
-        removeCookies: removeCookies,
+        errors: structuredClone(ioErrors),
+        cookies: structuredClone(cookies),
+        removeCookies: structuredClone(removeCookies),
         useNext: ioUseNext,
         redirectUrl: redirectUrl ? new URL(redirectUrl) : undefined,
         statusCode: statusCode,
@@ -280,7 +280,7 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
             res.cookie(cookie, cookies[cookie]);
         }
 
-        for (const remove of Object.keys(removeCookies)) {
+        for (const remove of removeCookies) {
             res.clearCookie(remove);
         }
 

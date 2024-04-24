@@ -22,17 +22,29 @@ div(class="flex flex-col justify-center w-[80%] ")
         div(class="flex flex-col py-4")
             h3(class="text-[32px] text-slate-700 text-bold") Accounts
             ul
-                each val in self.accounts
-                    li(class="bg-gradient-to-r from-indigo-200 from-80% to-blue-200")
-                        a(href="/details/" + val.uuid) Account #{val.uuid} With $#{val.cents}
+                each account in self.accounts
+                    div(class="pb-5")
+                        li(class="bg-gradient-to-r from-indigo-200 from-80% to-blue-200")
+                            a(
+                                class=" underline text-yellow-800 cursor-pointer "
+                                href="/details/" + account.uuid
+                            ) Account #{account.uuid} With $#{account.dollars}
 `
+
+interface AccountListing {
+    uuid: string,
+    dollars: string,
+}
 
 export function dashboardComponent(user: User, accounts: Array<Account>): FrontendComponent {
     return new FrontendComponent({
         name: user.username,
         newAccount: "/account",
         logout: "/logout",
-        accounts: accounts,
+        accounts: accounts.map((account) => Object.freeze({
+            uuid: account.uuid.toString(),
+            dollars: (account.cents.toNumber() / 100).toFixed(2).toString()
+        } as AccountListing)),
     }, compile(template, {
         self: true,
     }));

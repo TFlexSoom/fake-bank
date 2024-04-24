@@ -1,4 +1,4 @@
-import { Account, getUserAndAccountsFromUuid } from "../../data/user";
+import { Account, createAccountForUser, getUserAndAccountsFromUuid } from "../../data/user";
 import { detailsComponent } from "../../html/details";
 import { frontendWithTitle } from "../../html/render";
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
@@ -38,7 +38,7 @@ export const details: ApiEndpoint = {
         }
 
         return res.status(statusOk()).html(
-            frontendWithTitle("login").setComponent(detailsComponent(userAndAccounts.user, foundAccount))
+            frontendWithTitle("details").setComponent(detailsComponent(userAndAccounts.user, foundAccount))
         );
     },
 }
@@ -65,11 +65,11 @@ export const newAccount: ApiEndpoint = {
             return res.status(statusBadRequest()).publicError("too many accounts");
         }
 
-        // await createAccountForUser(userAndAccounts.user);
+        const account = await createAccountForUser(userAndAccounts.user);
+        if(account === undefined) {
+            return res.status(statusServerError()).publicError("could not grab account");
+        }
 
-
-        return res.status(statusOk()).html(
-            frontendWithTitle("login")
-        );
+        return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/details/" + account.uuid.toString()));
     },
 }

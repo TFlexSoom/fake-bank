@@ -17,7 +17,7 @@ const invalidToken: RequestHandler = async (req, res) => {
 function validateTokenRequest(onUnauthorizedEndpoint: ApiEndpoint): RequestHandler {
     const onUnauthorized: RequestHandler = (
         onUnauthorizedEndpoint.onUnauthorized !== undefined ?
-            endpointImplToExpressHandler(onUnauthorizedEndpoint.name, onUnauthorizedEndpoint.onUnauthorized) :
+            endpointImplToExpressHandler("AUTH FOR " + onUnauthorizedEndpoint.name, onUnauthorizedEndpoint.onUnauthorized) :
             invalidToken
     );
 

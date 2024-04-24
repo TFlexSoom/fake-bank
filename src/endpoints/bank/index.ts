@@ -1,6 +1,6 @@
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
 import { dashboard } from "./dashboard";
-import { details } from "./details";
+import { details, newAccount } from "./details";
 import { loginGet, loginPost, logout } from "./login";
 import { registerGet, registerPost } from "./register";
 
@@ -27,4 +27,5 @@ export const Endpoints = [
     registerPost,
     dashboard,
     details,
+    newAccount,
 ]

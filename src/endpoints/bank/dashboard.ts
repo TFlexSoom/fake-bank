@@ -26,7 +26,7 @@ export const dashboard: ApiEndpoint = {
         }
 
         return res.status(statusOk()).html(
-            frontendWithTitle("login").setComponent(dashboardComponent(userAndAccounts.user, userAndAccounts.accounts))
+            frontendWithTitle("dashboard").setComponent(dashboardComponent(userAndAccounts.user, userAndAccounts.accounts))
         );
     },
 }
