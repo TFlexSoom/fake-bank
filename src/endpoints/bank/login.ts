@@ -20,8 +20,8 @@ export const loginPost: ApiEndpoint = {
     routeMatcher: "/login",
     impl: async (req, res) => {
         const { username, password } = req.body as LoginPayload;
-        if (isValidUsername(username)) {
-            return res.status(statusBadRequest()).publicError("No Username Supplied!");
+        if (!isValidUsername(username)) {
+            return res.status(statusBadRequest()).publicError("Bad Username Supplied!");
         }
 
         const user = (await getUserFromUsername(username)) || getEmptyUser();
@@ -43,6 +43,21 @@ export const loginGet: ApiEndpoint = {
     impl: async (req, res) => {
         return res.status(statusOk()).html(
             frontendWithTitle("login").setComponent(usernamePasswordModal(false))
+        );
+    },
+}
+
+export const logout: ApiEndpoint = {
+    name: "logout",
+    method: Method.GET,
+    useAuth: true,
+    onUnauthorized: async (req, res) => {
+        return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
+    },
+    routeMatcher: "/logout",
+    impl: async (req, res) => {
+        return res.removeCookie(cookieName()).redirect(
+            new URL(req.protocol + "://" + req.get("host") + "/login")
         );
     },
 }

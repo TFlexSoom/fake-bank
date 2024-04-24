@@ -21,8 +21,8 @@ export const registerPost: ApiEndpoint = {
     routeMatcher: "/register",
     impl: async (req, res) => {
         const { username, password } = req.body as RegisterPayload;
-        if (isValidUsername(username)) {
-            return res.status(statusBadRequest()).publicError("No Username Supplied!");
+        if (!isValidUsername(username)) {
+            return res.status(statusBadRequest()).publicError("Bad Username Supplied!");
         }
 
         const hashedPasswordResult = await generatePassword(password);

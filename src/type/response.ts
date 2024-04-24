@@ -10,6 +10,7 @@ interface ResponseData {
     hasResponse: boolean,
     body: Record<string, any> | null,
     cookies: Record<string, string>,
+    removeCookies: Array<string>,
     warnings: Array<string>,
     privateErrors: Array<string>,
     publicError: string | null,
@@ -23,6 +24,7 @@ function newData(): ResponseData {
         hasResponse: false,
         body: null,
         cookies: {},
+        removeCookies: [],
         warnings: [],
         privateErrors: [],
         publicError: null,
@@ -54,6 +56,11 @@ function status(res: ResponseData, statusCode: StatusCode): ResponseData {
 
 function cookie(res: ResponseData, cookieName: string, cookieVal: any): ResponseData {
     res.cookies[cookieName] = structuredClone(cookieVal);
+    return res;
+}
+
+function removeCookie(res: ResponseData, cookieName: string): ResponseData {
+    res.removeCookies.push(cookieName);
     return res;
 }
 
@@ -108,6 +115,7 @@ export interface ResponseBuilder {
     redirect: (newLocation: URL) => ResponseBuilder,
     publicError: (error: string) => ResponseBuilder,
     cookie: (cookieName: string, cookieVal: string) => ResponseBuilder,
+    removeCookie: (cookieName: string) => ResponseBuilder,
     render: (redirectUrl: URL) => ResponseBuilder,
     html: (frontend: Frontend) => ResponseBuilder,
 };
@@ -124,6 +132,7 @@ function toBuilder(frozenData: ResponseData): PrivateResponseBuilder {
         redirect: (newLocation: URL) => toBuilder(redirect(structuredClone(frozenData), newLocation)),
         publicError: (error: string) => toBuilder(publicError(structuredClone(frozenData), error)),
         cookie: (cookieName: string, cookieVal: string) => toBuilder(cookie(structuredClone(frozenData), cookieName, cookieVal)),
+        removeCookie: (cookieName: string) => toBuilder(removeCookie(structuredClone(frozenData), cookieName)),
         render: (redirectUrl: URL) => toBuilder(render(structuredClone(frozenData), redirectUrl)),
         html: (frontend: Frontend) => toBuilder(html(structuredClone(frozenData), frontend)),
     })
@@ -134,6 +143,7 @@ export interface IO {
     warnings: Array<string>,
     errors: Array<string>,
     cookies: Record<string, string>,
+    removeCookies: Array<string>
     useNext: boolean,
     redirectUrl: URL | undefined,
     statusCode: StatusCode,
@@ -155,6 +165,7 @@ function createIO({
 }): Readonly<IO> {
     const {
         cookies,
+        removeCookies,
         warnings,
         privateErrors,
         publicError,
@@ -178,6 +189,7 @@ function createIO({
         warnings: structuredClone(warnings),
         errors: ioErrors,
         cookies: cookies,
+        removeCookies: removeCookies,
         useNext: ioUseNext,
         redirectUrl: redirectUrl ? new URL(redirectUrl) : undefined,
         statusCode: statusCode,
@@ -245,6 +257,7 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
             warnings,
             errors,
             cookies,
+            removeCookies,
             useNext,
             redirectUrl,
             statusCode,
@@ -265,6 +278,10 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
 
         for (const cookie of Object.keys(cookies)) {
             res.cookie(cookie, cookies[cookie]);
+        }
+
+        for (const remove of Object.keys(removeCookies)) {
+            res.clearCookie(remove);
         }
 
         if (useNext) {
