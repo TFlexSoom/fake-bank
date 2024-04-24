@@ -1,4 +1,6 @@
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
+import { dashboard } from "./dashboard";
+import { details } from "./details";
 import { loginGet, loginPost } from "./login";
 import { registerGet, registerPost } from "./register";
 
@@ -12,7 +14,7 @@ const rootRedirect: ApiEndpoint = {
         },
     routeMatcher: "/",
     impl: async (req, res) => {
-        return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
+        return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/dashboard"));
     },
 }
 
@@ -22,4 +24,6 @@ export const Endpoints = [
     loginPost,
     registerGet,
     registerPost,
+    dashboard,
+    details,
 ]

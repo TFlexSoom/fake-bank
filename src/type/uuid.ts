@@ -24,6 +24,10 @@ export class Uuid {
         return new Uuid(from);
     }
 
+    static validateString(from: string): boolean {
+        return uuidValidate(from);
+    }
+
     toString(): string {
         return this.val;
     }

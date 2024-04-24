@@ -21,7 +21,7 @@ model User {
     lastLogin   DateTime  @default(now())
     createdAt   DateTime  @default(now())
     lastUpdated DateTime  @updatedAt
-    Account     Account[]
+    Accounts    Account[]
 
     @@index([lastLogin])
     @@index([createdAt])
@@ -30,6 +30,7 @@ model User {
 
 model Account {
     id          Int      @id @default(autoincrement())
+    uuid        String   @unique
     userId      Int
     cents       Int
     createdAt   DateTime @default(now())

@@ -8,28 +8,26 @@ export type HandlerImpl = (req: Request, res: ResponseBuilder) => Promise<Respon
 
 interface ResponseData {
     hasResponse: boolean,
-    headers: Record<string, string>,
     body: Record<string, any> | null,
     cookies: Record<string, string>,
     warnings: Array<string>,
     privateErrors: Array<string>,
     publicError: string | null,
     statusCode: StatusCode | null,
-    nextRender: string | null,
+    redirectUrl: URL | undefined,
     html: Frontend | null,
 }
 
 function newData(): ResponseData {
     return Object.freeze({
         hasResponse: false,
-        headers: {},
         body: null,
         cookies: {},
         warnings: [],
         privateErrors: [],
         publicError: null,
         statusCode: null,
-        nextRender: null,
+        redirectUrl: undefined,
         html: null,
     });
 }
@@ -55,7 +53,7 @@ function status(res: ResponseData, statusCode: StatusCode): ResponseData {
 }
 
 function cookie(res: ResponseData, cookieName: string, cookieVal: any): ResponseData {
-    res.cookies[cookieName] = JSON.stringify(cookieVal);
+    res.cookies[cookieName] = structuredClone(cookieVal);
     return res;
 }
 
@@ -72,7 +70,7 @@ function redirect(res: ResponseData, newLocation: URL): ResponseData {
         return res;
     }
 
-    res.headers["Location"] = newLocation.toString();
+    res.redirectUrl = new URL(newLocation);
     res.statusCode = statusTempRedirect();
     return res;
 }
@@ -86,12 +84,12 @@ function publicError(res: ResponseData, error: string): ResponseData {
     return res;
 }
 
-function render(res: ResponseData, nextPath: string): ResponseData {
+function render(res: ResponseData, nextPath: URL): ResponseData {
     if (!lockResponse(res, "Attempted to render response after one was sent.")) {
         return res;
     }
 
-    res.nextRender = structuredClone(nextPath);
+    res.redirectUrl = new URL(nextPath);
     return res;
 }
 
@@ -110,7 +108,7 @@ export interface ResponseBuilder {
     redirect: (newLocation: URL) => ResponseBuilder,
     publicError: (error: string) => ResponseBuilder,
     cookie: (cookieName: string, cookieVal: string) => ResponseBuilder,
-    render: (shortPath: string) => ResponseBuilder,
+    render: (redirectUrl: URL) => ResponseBuilder,
     html: (frontend: Frontend) => ResponseBuilder,
 };
 
@@ -126,7 +124,7 @@ function toBuilder(frozenData: ResponseData): PrivateResponseBuilder {
         redirect: (newLocation: URL) => toBuilder(redirect(structuredClone(frozenData), newLocation)),
         publicError: (error: string) => toBuilder(publicError(structuredClone(frozenData), error)),
         cookie: (cookieName: string, cookieVal: string) => toBuilder(cookie(structuredClone(frozenData), cookieName, cookieVal)),
-        render: (nextPath: string) => toBuilder(render(structuredClone(frozenData), nextPath)),
+        render: (redirectUrl: URL) => toBuilder(render(structuredClone(frozenData), redirectUrl)),
         html: (frontend: Frontend) => toBuilder(html(structuredClone(frozenData), frontend)),
     })
 }
@@ -135,10 +133,9 @@ export interface IO {
     logs: Array<string>,
     warnings: Array<string>,
     errors: Array<string>,
-    headers: Record<string, string>,
     cookies: Record<string, string>,
     useNext: boolean,
-    nextParams: Array<string>,
+    redirectUrl: URL | undefined,
     statusCode: StatusCode,
     send: Record<string, any> | string | undefined,
 }
@@ -157,12 +154,11 @@ function createIO({
     payload?: Record<string, any> | string,
 }): Readonly<IO> {
     const {
-        headers,
         cookies,
         warnings,
         privateErrors,
         publicError,
-        nextRender,
+        redirectUrl,
         statusCode,
     } = (builder as PrivateResponseBuilder).frozenData;
 
@@ -176,14 +172,14 @@ function createIO({
         ioErrors.push(publicError);
     }
 
+
     return Object.freeze({
         logs: structuredClone(logs) || [],
         warnings: structuredClone(warnings),
         errors: ioErrors,
-        headers: headers,
         cookies: cookies,
         useNext: ioUseNext,
-        nextParams: [nextRender],
+        redirectUrl: redirectUrl ? new URL(redirectUrl) : undefined,
         statusCode: statusCode,
         send: payload,
     });
@@ -196,7 +192,6 @@ export async function endpointImplToIO(name: string, req: Request, impl: Handler
         hasResponse,
         body,
         publicError,
-        nextRender,
         statusCode,
         html,
     } = (builder as PrivateResponseBuilder).frozenData;
@@ -227,13 +222,6 @@ export async function endpointImplToIO(name: string, req: Request, impl: Handler
         });
     }
 
-    if (nextRender !== null) {
-        return createIO({
-            builder,
-            useNext: true,
-        });
-    }
-
     if (html !== null) {
         return createIO({
             builder,
@@ -256,10 +244,9 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
             logs,
             warnings,
             errors,
-            headers,
             cookies,
             useNext,
-            nextParams,
+            redirectUrl,
             statusCode,
             send,
         } = await endpointImplToIO(name, req, impl);
@@ -276,18 +263,23 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
             console.error(errors);
         }
 
-        for (const header of Object.keys(headers)) {
-            res.setHeader(header, headers[header]);
-        }
-
         for (const cookie of Object.keys(cookies)) {
             res.cookie(cookie, cookies[cookie]);
         }
 
         if (useNext) {
-            next(...nextParams);
+            next();
             return;
         }
+
+        if (redirectUrl !== undefined) {
+            res.redirect(redirectUrl.toString());
+            return;
+        } else {
+            // HTMX things... this is required for full page reloads/renders
+            res.setHeader("HX-Redirect", req.url);
+        }
+
 
         res.status(statusCode);
         res.send(send);

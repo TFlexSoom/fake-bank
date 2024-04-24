@@ -29,18 +29,8 @@ export async function generateToken(uuid: Uuid): Promise<string> {
         ;
 }
 
-export async function validateToken(authString: string): Promise<Uuid | null> {
-    const pieces = authString.split(' ', 2);
-    if (pieces.length != 2) {
-        return null;
-    }
-
-    if (pieces[0] !== 'Bearer') {
-        return null;
-    }
-
-    const token = pieces[1];
-    const result = await jwtVerify(token, await getSecret(), {
+export async function validateToken(authString: string): Promise<Uuid | undefined> {
+    const result = await jwtVerify(authString, await getSecret(), {
         issuer: iss,
     });
 

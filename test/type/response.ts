@@ -1,7 +1,7 @@
-import {describe, it} from "mocha";
-import assert, {deepStrictEqual, fail, notDeepStrictEqual, notEqual} from "assert";
-import {endpointImplToIO} from "../../src/type/response";
-import {mockRequest} from 'mock-req-res'
+import { describe, it } from "mocha";
+import assert, { deepStrictEqual, fail, notDeepStrictEqual, notEqual } from "assert";
+import { endpointImplToIO } from "../../src/type/response";
+import { mockRequest } from 'mock-req-res'
 import { statusOk } from "../../src/type/status";
 
 describe("responses", () => {
@@ -30,13 +30,12 @@ describe("responses", () => {
         notDeepStrictEqual(io.errors, []);
     });
     it("render blocks responses and uses that reference for next", async () => {
-        const shortPath = "/login";
+        const shortPath = new URL("http://fake-bank.com/login");
         const io = await endpointImplToIO("test", mockRequest(), async (req, res) => {
             return res.render(shortPath);
         });
 
-        assert(io.useNext);
-        deepStrictEqual(io.nextParams[0], shortPath);
+        deepStrictEqual(io.redirectUrl, shortPath);
     });
     it("response builders should not be equal when there are modifications", async () => {
         await endpointImplToIO("test", mockRequest(), async (req, res) => {

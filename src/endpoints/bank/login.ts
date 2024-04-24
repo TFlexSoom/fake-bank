@@ -32,7 +32,7 @@ export const loginPost: ApiEndpoint = {
         }
 
         res = res.cookie(cookieName(), await generateToken(user.uuid));
-        return res.render("/dashboard");
+        return res.render(new URL(req.protocol + "://" + req.get("host") + "/dashboard"));
     },
 }
 

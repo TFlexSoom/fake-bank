@@ -9,29 +9,42 @@ export function cookieName(): string {
 }
 
 const invalidToken: RequestHandler = async (req, res) => {
-    res.status(statusUnauthorized()).json({
+    return res.status(statusUnauthorized()).json({
         error: "unauthorized"
     });
 }
 
+function validateTokenRequest(onUnauthorizedEndpoint: ApiEndpoint): RequestHandler {
+    const onUnauthorized: RequestHandler = (
+        onUnauthorizedEndpoint.onUnauthorized !== undefined ?
+            endpointImplToExpressHandler(onUnauthorizedEndpoint.name, onUnauthorizedEndpoint.onUnauthorized) :
+            invalidToken
+    );
 
-const validateTokenRequest: RequestHandler = async (req, res, next) => {
-    const authString = req.cookies[cookieName()] || "";
-    if (authString === "") {
-        next();
-        return;
-    }
+    return async (req, res, next) => {
+        const authString = req.cookies[cookieName()] || "";
+        if (authString === "") {
+            onUnauthorized(req, res, next);
+            return;
+        }
 
-    try {
-        const uuid = validateToken(authString);
-        req["user"] = uuid;
-        next();
+        try {
+            const uuid = await validateToken(authString);
+            if (uuid === undefined) {
+                onUnauthorized(req, res, next);
+                return;
+            }
 
-    } catch (err) {
-        console.warn("error validating token", err);
-    }
+            req["user"] = uuid;
+            next();
+            return;
 
-    next();
+        } catch (err) {
+            console.warn("error validating token", err);
+        }
+
+        onUnauthorized(req, res, next);
+    };
 }
 
 export default function authentication(endpoints: Array<ApiEndpoint>): Router {
@@ -42,13 +55,7 @@ export default function authentication(endpoints: Array<ApiEndpoint>): Router {
             continue;
         }
 
-        const onUnauthorized = (
-            endpoint.onUnauthorized !== undefined ?
-                endpointImplToExpressHandler(endpoint.name, endpoint.onUnauthorized) :
-                invalidToken
-        );
-
-        authRouter.all(endpoint.routeMatcher, validateTokenRequest, onUnauthorized);
+        authRouter.all(endpoint.routeMatcher, validateTokenRequest(endpoint));
     }
 
     return authRouter;
