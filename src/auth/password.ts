@@ -3,6 +3,7 @@ import { User } from "../data/user";
 
 const saltRounds = 10;
 const minimumByteLength = 12;
+const maximumByteLength = 2048;
 
 export class HashedPassword {
     private val: string;
@@ -26,7 +27,7 @@ export interface PasswordResult {
     error: string,
 }
 
-function passswordResultFromHash(hash: string): PasswordResult {
+function passwordResultFromHash(hash: string): PasswordResult {
     return {
         hash: new HashedPassword(hash),
         error: "",
@@ -49,8 +50,12 @@ export function passwordResultSuccess(result: PasswordResult): boolean {
 }
 
 export async function generatePassword(password: string): Promise<PasswordResult> {
-    if (password.length < minimumByteLength) {
+    if (password === undefined) {
+        return passwordResultFromError("password is not in body");
+    } else if (password.length < minimumByteLength) {
         return passwordResultFromError("password not long enough");
+    } else if (password.length > maximumByteLength) {
+        return passwordResultFromError("password too long for storage");
     } else if (/$[a-z]*^/.test(password)) {
         return passwordResultFromError("password does not contain uppercase or special")
     } else if (/$[0-9]*^/.test(password)) {
@@ -58,7 +63,7 @@ export async function generatePassword(password: string): Promise<PasswordResult
     }
 
     const hashResult = await hash(password, saltRounds);
-    return passswordResultFromHash(hashResult);
+    return passwordResultFromHash(hashResult);
 }
 
 export async function validatePassword(user: User, password: string): Promise<boolean> {

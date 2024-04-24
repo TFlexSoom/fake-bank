@@ -1,6 +1,7 @@
 import { cookieName } from "../../auth";
 import { generateToken } from "../../auth/jwt";
 import { validatePassword } from "../../auth/password";
+import { isValidUsername } from "../../auth/username";
 import { getEmptyUser, getUserFromUsername } from "../../data/user";
 import { usernamePasswordModal } from "../../html/modal";
 import { frontendWithTitle } from "../../html/render";
@@ -19,10 +20,8 @@ export const loginPost: ApiEndpoint = {
     routeMatcher: "/login",
     impl: async (req, res) => {
         const { username, password } = req.body as LoginPayload;
-        if (username === undefined) {
+        if (isValidUsername(username)) {
             return res.status(statusBadRequest()).publicError("No Username Supplied!");
-        } else if (password === undefined) {
-            return res.status(statusBadRequest()).publicError("No Password Supplied!");
         }
 
         const user = (await getUserFromUsername(username)) || getEmptyUser();

@@ -1,6 +1,7 @@
 import { cookieName } from "../../auth";
 import { generateToken } from "../../auth/jwt";
 import { generatePassword, passwordResultSuccess } from "../../auth/password";
+import { isValidUsername } from "../../auth/username";
 import { lockRegisterRequest } from "../../data/ratelimit";
 import { createUser } from "../../data/user";
 import { usernamePasswordModal } from "../../html/modal";
@@ -20,10 +21,8 @@ export const registerPost: ApiEndpoint = {
     routeMatcher: "/register",
     impl: async (req, res) => {
         const { username, password } = req.body as RegisterPayload;
-        if (username === undefined) {
+        if (isValidUsername(username)) {
             return res.status(statusBadRequest()).publicError("No Username Supplied!");
-        } else if (password === undefined) {
-            return res.status(statusBadRequest()).publicError("No Password Supplied!");
         }
 
         const hashedPasswordResult = await generatePassword(password);
