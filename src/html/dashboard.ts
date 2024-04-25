@@ -7,19 +7,19 @@ div(class=" flex flex-col justify-center w-[80%] ")
     h2(class="text-[48px] text-slate-700 text-bold") #{self.name}'s Dashboard
     div(class="flex flex-row flex-wrap py-4 w-[100%] ")
         div(class=" pr-2 ")
-            button(class=" px-2 py-4 min-w-[120px] " +
+            button(class=" px-2 py-4 min-w-[120px] rounded-lg " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-post=self.newAccount
             ) 
                 span(class="text-white") New Account
         div(class=" pr-2 ")
-            button(class=" px-2 py-4 min-w-[120px] " +
+            button(class=" px-2 py-4 min-w-[120px] rounded-lg " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-get=self.transfer
             ) 
                 span(class="text-white") Transfer
         div(class=" pr-2 ")
-            button(class=" px-2 py-4 min-w-[120px] " +
+            button(class=" px-2 py-4 min-w-[120px] rounded-lg " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-get=self.logout
             ) 

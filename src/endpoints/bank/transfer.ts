@@ -1,6 +1,7 @@
 import { lockTransaction } from "../../data/ratelimit";
-import { getUserAndAccountsFromUuid, isEmptyUser } from "../../data/user";
+import { getUserAndAccountsFromUuid, isEmptyUser, transferFromAccountToAccount } from "../../data/user";
 import { frontendWithTitle } from "../../html/render";
+import { transferComponent } from "../../html/transfer";
 import { ApiEndpoint, Method } from "../../type/apiEndpoint";
 import { Integer } from "../../type/integer";
 import { statusBadRequest, statusOk, statusServerError } from "../../type/status";
@@ -61,11 +62,11 @@ export const transfer: ApiEndpoint = {
             money,
         } = req.body as Transfer;
 
-        if(!Uuid.validateString(sender) || !Uuid.validateString(receiver)) {
+        if (!Uuid.validateString(sender) || !Uuid.validateString(receiver)) {
             return res.status(statusBadRequest()).publicError("not valid uuids");
         }
 
-        if(!/[0-9]+(\.[0-9]{2,2})?/.test(String(money))) {
+        if (!/[0-9]+(\.[0-9]{2,2})?/.test(String(money))) {
             return res.status(statusBadRequest()).publicError("not valid money amount");
         }
 
@@ -78,7 +79,7 @@ export const transfer: ApiEndpoint = {
         const cents = new Integer(money * 100);
 
         const err = await transferFromAccountToAccount(uuid, senderAccount, receiverAccount, cents);
-        if(err !== undefined) {
+        if (err !== undefined) {
             return res.status(statusBadRequest()).publicError(err);
         }
 

@@ -3,6 +3,7 @@ import { dashboard } from "./dashboard";
 import { details, newAccount } from "./details";
 import { loginGet, loginPost, logout } from "./login";
 import { registerGet, registerPost } from "./register";
+import { transfer, transferPage } from "./transfer";
 
 const rootRedirect: ApiEndpoint = {
     name: "root",
@@ -28,4 +29,6 @@ export const Endpoints = [
     dashboard,
     details,
     newAccount,
+    transfer,
+    transferPage,
 ]

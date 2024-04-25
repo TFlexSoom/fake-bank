@@ -137,19 +137,22 @@ export async function getUserFromUsername(username: string): Promise<User> {
 
 }
 
+const maxTransferRate = 100_000;
+const maxAccountValue = 100_000_000_000;
+
 export async function transferFromAccountToAccount(
-    senderUuid: Uuid, 
-    senderAccount: Uuid, 
-    receiverAccount: Uuid, 
+    senderUuid: Uuid,
+    senderAccount: Uuid,
+    receiverAccount: Uuid,
     cents: Integer
 ): Promise<string | undefined> {
-    if(cents.toNumber() < 0) {
+    if (cents.toNumber() < 0) {
         // unreachable as caller should be checking
         // against it. Redundant
         return "NO STEALING";
     }
 
-    if(cents.toNumber() > 1000) {
+    if (cents.toNumber() > maxTransferRate) {
         return "WOAH TAKE IT EASY";
     }
 
@@ -163,7 +166,7 @@ export async function transferFromAccountToAccount(
             },
         });
 
-        if(userAndAccounts === null) {
+        if (userAndAccounts === null) {
             return "user does not exist";
         }
 
@@ -171,12 +174,12 @@ export async function transferFromAccountToAccount(
             (account) => senderAccount.toString() === account.uuid
         );
 
-        if(maybeSender.length === 0) {
+        if (maybeSender.length === 0) {
             return "sender account does not exist";
         }
-        
+
         const sender = maybeSender[0];
-        if(sender.cents < cents.toNumber()) {
+        if (sender.cents < cents.toNumber()) {
             return "sender does not have that much";
         }
 
@@ -185,16 +188,35 @@ export async function transferFromAccountToAccount(
                 uuid: receiverAccount.toString(),
             },
         });
-        if(maybeReceiver === null) {
+        if (maybeReceiver === null) {
             return "receiving account does not exist";
-        } else if (maybeReceiver.cents > maxCents)
+        } else if ((maybeReceiver.cents + cents.toNumber()) > maxAccountValue) {
+            return "receiving account cannot receive that much value";
+        }
+        const receiver = maybeReceiver;
 
-        
+        await client.account.update({
+            where: {
+                id: sender.id,
+            },
+            data: {
+                cents: sender.cents - cents.toNumber(),
+            }
+        });
+
+        await client.account.update({
+            where: {
+                id: receiver.id,
+            },
+            data: {
+                cents: sender.cents + cents.toNumber(),
+            }
+        });
 
         return undefined;
     },
         {
-            maxWait: 2000,
+            maxWait: 10000,
             timeout: 5000,
         });
 }
