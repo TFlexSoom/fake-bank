@@ -28,6 +28,10 @@ export class Uuid {
         return uuidValidate(from);
     }
 
+    equal(other: Uuid) {
+        return this.val === (other?.val || "");
+    }
+
     toString(): string {
         return this.val;
     }

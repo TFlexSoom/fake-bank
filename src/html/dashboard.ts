@@ -3,7 +3,7 @@ import { FrontendComponent } from '../type/frontend';
 import { Account, User } from '../data/user';
 
 const template = `
-div(class="flex flex-col justify-center w-[80%] ")
+div(class=" flex flex-col justify-center w-[80%] ")
     h2(class="text-[48px] text-slate-700 text-bold") #{self.name}'s Dashboard
     div(class="flex flex-col py-4 w-[100%] ")
         div(class=" py-2 ")
@@ -49,5 +49,3 @@ export function dashboardComponent(user: User, accounts: Array<Account>): Fronte
         self: true,
     }));
 }
-
-

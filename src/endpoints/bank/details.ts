@@ -26,20 +26,18 @@ export const details: ApiEndpoint = {
         }
         const accountUuid = Uuid.fromString(accountUuidStr);
         const userAndAccounts = await getUserAndAccountsFromUuid(uuid);
-        let foundAccount: Account | null = null;
-        for (const account of userAndAccounts.accounts) {
-            if (account.uuid === accountUuid) {
-                foundAccount = account;
-            }
-        }
+        const maybeFoundAccount: Array<Account> = userAndAccounts.accounts.filter(
+            (acc) => acc.uuid.equal(accountUuid)
+        )
 
-        if (foundAccount === null) {
+        if (maybeFoundAccount.length === 0) {
             return res.status(statusBadRequest()).render(new URL(req.protocol + "://" + req.get("host") + "/login"));
         }
 
         return res.status(statusOk()).html(
-            frontendWithTitle("details").setComponent(detailsComponent(userAndAccounts.user, foundAccount))
-        );
+            frontendWithTitle("details").setComponent(
+                detailsComponent(userAndAccounts.user, maybeFoundAccount[0])
+            ));
     },
 }
 
