@@ -54,3 +54,14 @@ model RateLimit {
     @@index([createdAt])
     @@index([lastUpdated])
 }
+
+model Session {
+    id          Int      @id @default(autoincrement())
+    uuid        String   @unique
+    csrfRandom  String
+    createdAt   DateTime @default(now())
+    lastUpdated DateTime @updatedAt
+
+    @@index([createdAt])
+    @@index([lastUpdated])
+}

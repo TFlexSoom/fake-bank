@@ -1,4 +1,3 @@
-import Prisma from "prisma"
 import { PrismaClient } from '@prisma/client'
 import { Integer } from '../type/integer'
 import dayjs from 'dayjs'
