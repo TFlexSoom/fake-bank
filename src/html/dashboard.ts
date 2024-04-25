@@ -5,14 +5,20 @@ import { Account, User } from '../data/user';
 const template = `
 div(class=" flex flex-col justify-center w-[80%] ")
     h2(class="text-[48px] text-slate-700 text-bold") #{self.name}'s Dashboard
-    div(class="flex flex-col py-4 w-[100%] ")
-        div(class=" py-2 ")
+    div(class="flex flex-row flex-wrap py-4 w-[100%] ")
+        div(class=" pr-2 ")
             button(class=" px-2 py-4 min-w-[120px] " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-post=self.newAccount
             ) 
                 span(class="text-white") New Account
-        div(class=" py-2 ")
+        div(class=" pr-2 ")
+            button(class=" px-2 py-4 min-w-[120px] " +
+                " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
+                hx-get=self.transfer
+            ) 
+                span(class="text-white") Transfer
+        div(class=" pr-2 ")
             button(class=" px-2 py-4 min-w-[120px] " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-get=self.logout
@@ -40,6 +46,7 @@ export function dashboardComponent(user: User, accounts: Array<Account>): Fronte
     return new FrontendComponent({
         name: user.username,
         newAccount: "/account",
+        transfer: "/transfer",
         logout: "/logout",
         accounts: accounts.map((account) => Object.freeze({
             uuid: account.uuid.toString(),

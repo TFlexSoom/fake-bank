@@ -137,6 +137,68 @@ export async function getUserFromUsername(username: string): Promise<User> {
 
 }
 
+export async function transferFromAccountToAccount(
+    senderUuid: Uuid, 
+    senderAccount: Uuid, 
+    receiverAccount: Uuid, 
+    cents: Integer
+): Promise<string | undefined> {
+    if(cents.toNumber() < 0) {
+        // unreachable as caller should be checking
+        // against it. Redundant
+        return "NO STEALING";
+    }
+
+    if(cents.toNumber() > 1000) {
+        return "WOAH TAKE IT EASY";
+    }
+
+    return await client.$transaction(async (tx) => {
+        const userAndAccounts = await client.user.findUnique({
+            where: {
+                uuid: senderUuid.toString(),
+            },
+            include: {
+                Accounts: true,
+            },
+        });
+
+        if(userAndAccounts === null) {
+            return "user does not exist";
+        }
+
+        const maybeSender = userAndAccounts.Accounts.filter(
+            (account) => senderAccount.toString() === account.uuid
+        );
+
+        if(maybeSender.length === 0) {
+            return "sender account does not exist";
+        }
+        
+        const sender = maybeSender[0];
+        if(sender.cents < cents.toNumber()) {
+            return "sender does not have that much";
+        }
+
+        const maybeReceiver = await client.account.findUnique({
+            where: {
+                uuid: receiverAccount.toString(),
+            },
+        });
+        if(maybeReceiver === null) {
+            return "receiving account does not exist";
+        } else if (maybeReceiver.cents > maxCents)
+
+        
+
+        return undefined;
+    },
+        {
+            maxWait: 2000,
+            timeout: 5000,
+        });
+}
+
 export function getEmptyUser(): User {
     return {
         id: new Integer(0),
