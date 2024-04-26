@@ -28,12 +28,12 @@ const invalidToken: RequestHandler = async (req, res) => {
 
 const sessionize: RequestHandler = async (req, res, next) => {
     const sessionUuidStr: string = req.cookies[cookieName()];
-    const sessionUuid = Uuid.validateString(sessionUuidStr) ? 
+    const sessionUuid = Uuid.validateString(sessionUuidStr) ?
         Uuid.fromString(sessionUuidStr) : undefined;
 
     const session = await getOrCreateSession(sessionUuid);
 
-    if(sessionUuid === undefined || !sessionUuid.equal(session.uuid)) {
+    if (sessionUuid === undefined || !sessionUuid.equal(session.uuid)) {
         res.cookie(cookieName(), session.uuid.toString());
     }
 
@@ -42,14 +42,15 @@ const sessionize: RequestHandler = async (req, res, next) => {
 }
 
 const validateTokenRequest: RequestHandler = async (req, res, next) => {
-    if(req.method === "GET") {
+    if (req.method === "GET") {
         next();
+        return;
     }
 
     try {
         const sessionUuid = Uuid.fromString(req.cookies[cookieName()]);
-        const nonce = req.header(headerName()) || req.body[fieldName()] || "";
-
+        const body = req?.body || {};
+        const nonce = req.header(headerName()) || body[fieldName()] || "";
         const session = await getOrCreateSession(sessionUuid);
         const csrfRandom = session?.csrfRandom || "";
 

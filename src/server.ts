@@ -33,9 +33,9 @@ export function create(args: Array<string>): Server {
     const _endpoints: Array<ApiEndpoint> = Endpoints;
 
     instance.use(cookieParser());
+    instance.use(express.json());
     instance.use(csrf(_endpoints));
     instance.use(authentication(_endpoints));
-    instance.use(express.json());
     for (const endpoint of _endpoints) {
         instance[endpoint.method](
             endpoint.routeMatcher,

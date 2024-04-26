@@ -10,12 +10,17 @@ async function getACode(): Promise<Buffer> {
         return _aCode
     }
 
-    const secret = Buffer.from(process.env.CSRF_SECRET, 'base64');
+    const secretBase64 = process.env.CSRF_SECRET;
+    if (secretBase64 === undefined) {
+        throw new Error("CSRF_SECRET env variable not defined");
+    }
+
+    const secret = Buffer.from(secretBase64, 'base64');
     const hash = createHash(saltCodeAlg);
     hash.update(secret);
     hash.update(salt);
     _aCode = hash.digest();
-    
+
     return _aCode;
 }
 
