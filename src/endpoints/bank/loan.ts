@@ -66,7 +66,7 @@ export const loan: ApiEndpoint = {
             return res.status(statusBadRequest()).publicError("not valid uuid");
         }
 
-        if (!/[0-9]+(\.[0-9]{2,2})?/.test(String(money))) {
+        if (!/^[0-9]+(\.[0-9]{2,2})?$/.test(String(money))) {
             return res.status(statusBadRequest()).publicError("not valid money amount");
         }
 
