@@ -17,6 +17,7 @@ export const loginPost: ApiEndpoint = {
     name: "login",
     method: Method.POST,
     useAuth: false,
+    useCsrf: true,
     routeMatcher: "/login",
     impl: async (req, res) => {
         const { username, password } = req.body as LoginPayload;
@@ -39,6 +40,7 @@ export const loginGet: ApiEndpoint = {
     name: "loginPage",
     method: Method.GET,
     useAuth: false,
+    useCsrf: false,
     routeMatcher: "/login",
     impl: async (req, res) => {
         return res.status(statusOk()).html(
@@ -51,6 +53,7 @@ export const logout: ApiEndpoint = {
     name: "logout",
     method: Method.GET,
     useAuth: true,
+    useCsrf: false,
     onUnauthorized: async (req, res) => {
         return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
     },

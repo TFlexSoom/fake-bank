@@ -9,6 +9,7 @@ export const details: ApiEndpoint = {
     name: "details",
     method: Method.GET,
     useAuth: true,
+    useCsrf: false,
     onUnauthorized:
         async (req, res) => {
             return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
@@ -47,6 +48,7 @@ export const newAccount: ApiEndpoint = {
     name: "newAccount",
     method: Method.POST,
     useAuth: true,
+    useCsrf: true,
     onUnauthorized:
         async (req, res) => {
             return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));

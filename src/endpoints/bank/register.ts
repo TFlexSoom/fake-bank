@@ -18,6 +18,7 @@ export const registerPost: ApiEndpoint = {
     name: "register",
     method: Method.POST,
     useAuth: false,
+    useCsrf: true,
     routeMatcher: "/register",
     impl: async (req, res) => {
         const { username, password } = req.body as RegisterPayload;
@@ -48,6 +49,7 @@ export const registerGet: ApiEndpoint = {
     name: "registerPage",
     method: Method.GET,
     useAuth: false,
+    useCsrf: false,
     routeMatcher: "/register",
     impl: async (req, res) => {
         return res.status(statusOk()).html(

@@ -16,7 +16,7 @@ export interface Session {
     csrfRandom: string,
 }
 
-export async function getOrCreate(uuid: Uuid | undefined): Promise<Session> {
+export async function getOrCreateSession(uuid: Uuid | undefined): Promise<Session> {
     if (uuid !== undefined) {
         const maybeSession = await client.session.findUnique({
             where: {
@@ -47,7 +47,7 @@ export async function getOrCreate(uuid: Uuid | undefined): Promise<Session> {
     return session;
 }
 
-export async function upsertNewRandom(uuid: Uuid | undefined): Promise<Session> {
+export async function upsertNewRandomForSession(uuid: Uuid | undefined): Promise<Session> {
     const result = await client.session.upsert({
         create: {
             uuid: Uuid.createUuid().toString(),

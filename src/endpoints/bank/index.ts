@@ -9,6 +9,7 @@ const rootRedirect: ApiEndpoint = {
     name: "root",
     method: Method.GET,
     useAuth: true,
+    useCsrf: false,
     onUnauthorized:
         async (req, res) => {
             return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));

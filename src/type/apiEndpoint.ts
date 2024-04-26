@@ -16,6 +16,7 @@ export enum Method {
 export interface ApiEndpoint {
     name: string,
     useAuth: boolean
+    useCsrf: boolean
     onUnauthorized?: HandlerImpl,
     routeMatcher: string,
     method: Method,

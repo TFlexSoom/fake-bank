@@ -6,6 +6,7 @@ import Endpoints from "./endpoints";
 import { endpointImplToExpressHandler } from "./type/response";
 import { statusNotFound } from "./type/status";
 import "dotenv/config";
+import csrf from "./csrf/csrf";
 
 export interface Server {
     run: () => void
@@ -32,6 +33,7 @@ export function create(args: Array<string>): Server {
     const _endpoints: Array<ApiEndpoint> = Endpoints;
 
     instance.use(cookieParser());
+    instance.use(csrf(_endpoints));
     instance.use(authentication(_endpoints));
     instance.use(express.json());
     for (const endpoint of _endpoints) {
