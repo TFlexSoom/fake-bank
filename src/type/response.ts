@@ -295,7 +295,7 @@ export function endpointImplToExpressHandler(name: string, impl: HandlerImpl): R
         if (redirectUrl !== undefined) {
             res.redirect(redirectUrl.toString());
             return;
-        } else {
+        } else if (statusCode >= 200 && statusCode < 300) {
             // HTMX things... this is required for full page reloads/renders
             res.setHeader("HX-Redirect", req.url);
         }

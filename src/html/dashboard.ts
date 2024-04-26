@@ -23,6 +23,12 @@ div(class=" flex flex-col justify-center w-[80%] ")
         div(class=" pr-2 ")
             button(class=" px-2 py-4 min-w-[120px] rounded-lg " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
+                hx-get=self.loan
+            ) 
+                span(class="text-white") Get Loan
+        div(class=" pr-2 ")
+            button(class=" px-2 py-4 min-w-[120px] rounded-lg " +
+                " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-get=self.logout
             ) 
                 span(class="text-white") Logout
@@ -49,6 +55,7 @@ export function dashboardComponent(user: User, accounts: Array<Account>): Fronte
         name: user.username,
         newAccount: "/account",
         transfer: "/transfer",
+        loan: "/loan",
         logout: "/logout",
         accounts: accounts.map((account) => Object.freeze({
             uuid: account.uuid.toString(),

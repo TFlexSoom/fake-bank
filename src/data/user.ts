@@ -137,8 +137,49 @@ export async function getUserFromUsername(username: string): Promise<User> {
 
 }
 
+const maxLoanRate = 100_000;
 const maxTransferRate = 100_000;
 const maxAccountValue = 100_000_000_000;
+
+export async function loanMoneyToAccount(
+    receiverUuid: Uuid,
+    recieverAccount: Uuid,
+    cents: Integer,
+): Promise<string | undefined> {
+    if (cents.toNumber() < 0) {
+        // unreachable as caller should be checking
+        // against it. Redundant
+        return "NO GOINT INTO DEBT";
+    }
+
+    if (cents.toNumber() > maxLoanRate) {
+        return "WOAH TAKE IT EASY";
+    }
+
+    try {
+        const result = await client.account.update({
+            data: {
+                cents: {
+                    increment: cents.toNumber()
+                }
+            },
+            where: {
+                uuid: recieverAccount.toString(),
+                user: {
+                    uuid: receiverUuid.toString(),
+                }
+            }
+        });
+
+
+        return undefined;
+    } catch (err) {
+        console.log(err); // probably just Row DNE    
+    }
+
+    return "ACCOUNT DOES NOT EXIST OR IS NOT OWNED";
+}
+
 
 export async function transferFromAccountToAccount(
     senderUuid: Uuid,
@@ -209,7 +250,7 @@ export async function transferFromAccountToAccount(
                 id: receiver.id,
             },
             data: {
-                cents: sender.cents + cents.toNumber(),
+                cents: receiver.cents + cents.toNumber(),
             }
         });
 

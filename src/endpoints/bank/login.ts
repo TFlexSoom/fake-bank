@@ -2,6 +2,7 @@ import { cookieName } from "../../auth";
 import { generateToken } from "../../auth/jwt";
 import { validatePassword } from "../../auth/password";
 import { isValidUsername } from "../../auth/username";
+import { lockLoginRequest } from "../../data/ratelimit";
 import { getEmptyUser, getUserFromUsername } from "../../data/user";
 import { usernamePasswordModal } from "../../html/modal";
 import { frontendWithTitle } from "../../html/render";
@@ -20,6 +21,10 @@ export const loginPost: ApiEndpoint = {
     useCsrf: true,
     routeMatcher: "/login",
     impl: async (req, res) => {
+        if (! await lockLoginRequest(req.ip)) {
+            return res.status(statusBadRequest()).publicError("Limit Reached!");
+        }
+
         const { username, password } = req.body as LoginPayload;
         if (!isValidUsername(username)) {
             return res.status(statusBadRequest()).publicError("Bad Username Supplied!");
