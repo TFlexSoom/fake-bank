@@ -1,10 +1,11 @@
 import { RequestHandler, Router } from "express";
 import { ApiEndpoint } from "../type/apiEndpoint";
-import { validateToken } from "./token";
+import { generateToken, validateToken } from "./token";
 import { cookieName as authCookieName } from "../auth";
 import { getOrCreateSession } from "../data/session";
 import { statusNotFound } from "../type/status";
 import { Uuid } from "../type/uuid";
+import { nonceFieldName } from "../type/frontend";
 
 export function cookieName(): string {
     return "session";
@@ -25,16 +26,19 @@ const invalidToken: RequestHandler = async (req, res) => {
     res.status(statusNotFound()).redirect(new URL(req.protocol + "://" + req.get("host") + "/login").toString());
 }
 
-const sessionize: RequestHandler = async (req, res) => {
+const sessionize: RequestHandler = async (req, res, next) => {
     const sessionUuidStr: string = req.cookies[cookieName()];
     const sessionUuid = Uuid.validateString(sessionUuidStr) ? 
         Uuid.fromString(sessionUuidStr) : undefined;
 
     const session = await getOrCreateSession(sessionUuid);
 
-    if(!sessionUuid.equal(session.uuid)) {
+    if(sessionUuid === undefined || !sessionUuid.equal(session.uuid)) {
         res.cookie(cookieName(), session.uuid.toString());
     }
+
+    req[nonceFieldName()] = await generateToken(session.csrfRandom);
+    next()
 }
 
 const validateTokenRequest: RequestHandler = async (req, res, next) => {

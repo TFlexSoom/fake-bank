@@ -1,3 +1,11 @@
+export function nonceFieldName(): string {
+    return "token";
+}
+
+export interface FrontendGlobals {
+    nonce: string,
+}
+
 export class Frontend {
     private title: string;
     private component: FrontendComponent;
@@ -28,10 +36,12 @@ export class Frontend {
         return clone;
     }
 
-    compile(page) {
+    compile(page: (locales: Record<string, any>) => string, globals: FrontendGlobals) {
         return page({
             title: structuredClone(this.title),
-            component: this.component.compile(),
+            component: this.component.compile(globals),
+            // not needed but could be added
+            //...globals
         })
     }
 }
@@ -56,7 +66,12 @@ export class FrontendComponent {
         return new FrontendComponent(this.dynamic, this.compiler);
     }
 
-    compile(): string {
-        return this.compiler(structuredClone(this.dynamic));
+    compile(globals: FrontendGlobals): string {
+        return this.compiler(structuredClone(
+            {
+                ...this.dynamic,
+                ...globals,
+            }
+        ));
     }
 }

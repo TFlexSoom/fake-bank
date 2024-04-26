@@ -10,6 +10,7 @@ div(class="flex flex-col items-center justify-center")
         h4(class="text-[24px] text-slate-700 text-bold") No Accounts To Transfer From
     else
         form(class="flex flex-col w-[100%]" hx-post=self.path hx-ext="json-enc")
+            input(class="invisible" name="nonce" value=self.nonce) 
             div(class="flex flex-col")
                 label(class="text-[24px] text-slate-700 text-bold") Select Account
                 select(class="pt-1 text-[18px] font-sans" name="sender")

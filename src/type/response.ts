@@ -2,8 +2,7 @@ import { Request, RequestHandler } from "express";
 
 import { StatusCode, statusTempRedirect } from "./status";
 import { renderFrontend } from "../html/render";
-import { Frontend } from "./frontend";
-import { Method } from "./apiEndpoint";
+import { Frontend, FrontendGlobals, nonceFieldName } from "./frontend";
 
 export type HandlerImpl = (req: Request, res: ResponseBuilder) => Promise<ResponseBuilder>;
 
@@ -200,6 +199,10 @@ function createIO({
 export async function endpointImplToIO(name: string, req: Request, impl: HandlerImpl): Promise<Readonly<IO>> {
     const builder = await impl(req, toBuilder(newData()));
 
+    const globals: FrontendGlobals = {
+        nonce: req[nonceFieldName()] || ""
+    }
+
     const {
         hasResponse,
         body,
@@ -237,7 +240,7 @@ export async function endpointImplToIO(name: string, req: Request, impl: Handler
     if (html !== null) {
         return createIO({
             builder,
-            payload: renderFrontend(html),
+            payload: renderFrontend(html, globals),
         });
     }
 

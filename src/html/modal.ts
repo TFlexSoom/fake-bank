@@ -5,6 +5,7 @@ const modal = compile(`
 div(class="flex flex-col items-center justify-center")
     h3(class="text-[32px] text-slate-700 text-bold") #{self.modalTitle}
     form(class="flex flex-col items-center justify-start" hx-post=self.path hx-ext="json-enc")
+        input(class="invisible" name="nonce" value=self.nonce) 
         div(class="flex flex-row items-center justify-center")
             label(class="text-[24px] text-slate-700 text-bold") Username
             span(class="p-2")

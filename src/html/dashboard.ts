@@ -10,6 +10,7 @@ div(class=" flex flex-col justify-center w-[80%] ")
             button(class=" px-2 py-4 min-w-[120px] rounded-lg " +
                 " bg-gradient-to-r from-indigo-700 from-80% to-blue-700 " 
                 hx-post=self.newAccount
+                hx-vals='{"nonce": #{self.nonce}}'
             ) 
                 span(class="text-white") New Account
         div(class=" pr-2 ")

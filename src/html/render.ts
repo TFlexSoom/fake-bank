@@ -1,5 +1,5 @@
 import { compile } from 'pug'
-import { Frontend } from '../type/frontend';
+import { Frontend, FrontendGlobals } from '../type/frontend';
 
 export function frontendWithTitle(title: string): Frontend {
     return new Frontend(title);
@@ -34,6 +34,6 @@ head
     self: true,
 });
 
-export function renderFrontend(frontend: Frontend) {
-    return frontend.compile(page);
+export function renderFrontend(frontend: Frontend, globals: FrontendGlobals) {
+    return frontend.compile(page, globals);
 }
