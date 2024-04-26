@@ -1,4 +1,4 @@
-import { genSalt, hash, compare } from "bcrypt";
+import { hash, compare } from "bcrypt";
 import { User } from "../data/user";
 
 const saltRounds = 10;
@@ -56,9 +56,9 @@ export async function generatePassword(password: string): Promise<PasswordResult
         return passwordResultFromError("password not long enough");
     } else if (password.length > maximumByteLength) {
         return passwordResultFromError("password too long for storage");
-    } else if (/$[a-z]*^/.test(password)) {
+    } else if (/^[a-z]*$/.test(password)) {
         return passwordResultFromError("password does not contain uppercase or special")
-    } else if (/$[0-9]*^/.test(password)) {
+    } else if (/^[0-9]*$/.test(password)) {
         return passwordResultFromError("password does not contain alphabet or special")
     }
 
