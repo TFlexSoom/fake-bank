@@ -23,7 +23,7 @@ export const dashboard: ApiEndpoint = {
 
         const userAndAccounts = await getUserAndAccountsFromUuid(uuid);
         if (isEmptyUser(userAndAccounts.user)) {
-            res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
+            return res.redirect(new URL(req.protocol + "://" + req.get("host") + "/login"));
         }
 
         return res.status(statusOk()).html(

@@ -16,6 +16,10 @@ async function getACode(): Promise<Buffer> {
     }
 
     const secret = Buffer.from(secretBase64, 'base64');
+    if (secret.length < 64) {
+        throw new Error("CSRF_SECRET env variable needs to have more bytes");
+    }
+
     const hash = createHash(saltCodeAlg);
     hash.update(secret);
     hash.update(salt);
